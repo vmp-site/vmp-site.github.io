@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Manager - Profile</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+        .table-scroll::-webkit-scrollbar { height: 6px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen flex flex-col">
+    <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="bg-primary text-white p-2 rounded-lg"><span class="material-symbols-outlined block">account_circle</span></div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+                        <h1 class="text-lg font-bold tracking-tight">Profile</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button id="menuBtn" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" type="button" onclick="toggleMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+                    <a href="workers.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Workers</a>
+                    <a href="sites.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Sites</a>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-5 pb-24">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-5 pb-24">
+        <!-- Profile Card -->
+        <div class="bg-gradient-to-br from-primary to-blue-800 text-white rounded-xl p-6 mb-5 shadow-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-4xl font-bold" id="profileAvatar">O</div>
+                <div>
+                    <h2 class="text-2xl font-bold" id="profileName">Owner</h2>
+                    <p class="text-blue-100 text-sm">Work Manager Administrator</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <div class="bg-white rounded-lg border border-slate-200 p-4 text-center">
+                <div class="text-2xl font-bold text-primary mb-1" id="totalSites">0</div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Sites</div>
+            </div>
+            <div class="bg-white rounded-lg border border-slate-200 p-4 text-center">
+                <div class="text-2xl font-bold text-primary mb-1" id="totalWorkers">0</div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Workers</div>
+            </div>
+            <div class="bg-white rounded-lg border border-slate-200 p-4 text-center">
+                <div class="text-2xl font-bold text-primary mb-1" id="totalEarned">₹0</div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Work</div>
+            </div>
+            <div class="bg-white rounded-lg border border-slate-200 p-4 text-center">
+                <div class="text-2xl font-bold text-primary mb-1" id="totalPaid">₹0</div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Paid</div>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-5">
+            <h3 class="text-base font-bold mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+                Financial Summary
+            </h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm font-semibold text-slate-600">Total Work Amount</span>
+                    <span class="text-sm font-bold text-slate-900" id="workAmount">₹0</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm font-semibold text-slate-600">Total Paid to Workers</span>
+                    <span class="text-sm font-bold text-slate-900" id="paidAmount">₹0</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                    <span class="text-sm font-semibold text-slate-600">Total Received</span>
+                    <span class="text-sm font-bold text-slate-900" id="receivedAmount">₹0</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-sm font-semibold text-slate-600">Pending Balance</span>
+                    <span class="text-sm font-bold" id="pendingBalance">₹0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Received from Site -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-5">
+            <div class="px-5 py-3 border-b border-slate-100">
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">building</span>
+                    Received from Site
+                </h3>
+            </div>
+            <div class="table-scroll overflow-x-auto">
+                <table class="w-full min-w-[520px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">#</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Site</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receivedSiteBody">
+                        <tr>
+                            <td colspan="4" class="px-4 py-8 text-center text-slate-500">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Received from Worker -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-5">
+            <div class="px-5 py-3 border-b border-slate-100">
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">person</span>
+                    Received from Worker
+                </h3>
+            </div>
+            <div class="table-scroll overflow-x-auto">
+                <table class="w-full min-w-[520px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">#</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Worker</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receivedWorkerBody">
+                        <tr>
+                            <td colspan="4" class="px-4 py-8 text-center text-slate-500">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="attendance-form.html">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Add</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="config.js"></script>
+    <script src="profile.js"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const menuPanel = document.getElementById('menuPanel');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function toggleMenu() {
+            menuPanel.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+                menuPanel.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

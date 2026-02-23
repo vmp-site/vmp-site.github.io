@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Manager - Payments</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+        .table-scroll::-webkit-scrollbar { height: 6px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        #worker_name option { padding: 8px; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen pb-24">
+    <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[24px]">construction</span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+                        <h1 class="text-lg font-bold tracking-tight">Payments</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button id="menuBtn" type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" onclick="toggleMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+                    <span class="material-symbols-outlined text-[22px]">account_circle</span>
+                </a>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+                    <a href="workers.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Workers</a>
+                    <a href="report.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Transactions</a>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container max-w-7xl mx-auto p-4 space-y-5">
+        <section class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold">Add Payment</h2>
+            </div>
+
+            <form id="paymentForm" class="space-y-4">
+                <div class="hidden">
+                    <label for="type">Payment Type</label>
+                    <select id="type" name="type">
+                        <option value="given" selected>Given</option>
+                        <option value="received">Received (From Site)</option>
+                        <option value="received_worker">Received (From Worker)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div class="input-group">
+                        <label for="date" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Payment Date</label>
+                        <input type="date" id="date" name="date" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="site_name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Site <span class="text-slate-400 normal-case text-[11px]">(Optional)</span></label>
+                        <select id="site_name" name="site_name" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="">Select Site (optional)</option>
+                        </select>
+                        <input type="hidden" id="site_id" name="site_id">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="payment_mode" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Payment Mode</label>
+                        <select id="payment_mode" name="payment_mode" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="">Select Mode</option>
+                            <option value="cash">Cash</option>
+                            <option value="online">Online</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="workersTableSection" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-2">Workers at Selected Site</h3>
+                    <div class="table-scroll overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                        <table class="w-full min-w-[640px]">
+                            <thead class="bg-primary text-white">
+                                <tr>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider">Select</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider">Worker Name</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider">Position</th>
+                                    <th class="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wider">Type</th>
+                                    <th class="px-2 py-2 text-right text-xs font-semibold uppercase tracking-wider">Pending (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="worker_name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Worker</label>
+                    <input type="text" id="worker_search" placeholder="Search worker by name, phone, or position..." class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary mb-2">
+                    <div class="relative">
+                        <select id="worker_name" name="worker_name" required size="6" class="w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary text-sm bg-white">
+                            <option value="">Select Worker</option>
+                        </select>
+                        <button type="button" id="clearWorker" class="hidden absolute right-2 top-2 px-2 py-1 rounded-md text-xs font-semibold bg-red-600 text-white hover:bg-red-700">Clear</button>
+                    </div>
+                    <div id="selectedWorkerInfo" class="hidden mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                        <div class="text-xs font-semibold text-blue-800 uppercase tracking-wider">Selected Worker</div>
+                        <div id="selectedWorkerDetails" class="text-sm text-blue-700 mt-1"></div>
+                    </div>
+                    <input type="hidden" id="worker_id" name="worker_id">
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div class="input-group">
+                        <label for="amount" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Amount (₹)</label>
+                        <input type="number" id="amount" name="amount" step="0.01" required placeholder="Enter payment amount" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+                    <div class="input-group">
+                        <label for="note" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Note</label>
+                        <textarea id="note" name="note" rows="2" placeholder="Additional notes or receipt number (optional)" class="w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary"></textarea>
+                    </div>
+                </div>
+
+                <div id="walletInfo" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-slate-600">Current Wallet</span>
+                        <span id="walletBalance" class="font-semibold text-slate-900">₹0</span>
+                    </div>
+                    <div id="paymentCalculation" class="hidden border-t border-slate-200 mt-2 pt-2 text-sm">
+                        <div id="takeNeed" class="hidden font-semibold text-red-600">Take need: <span id="takeNeedAmount"></span></div>
+                        <div id="giveTo" class="hidden font-semibold text-emerald-600">Give to: <span id="giveToAmount"></span></div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <button type="submit" class="h-11 px-5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90">Save Payment</button>
+                    <button type="button" class="h-11 px-5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100" onclick="window.history.back()">Cancel</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                <h2 class="text-lg font-bold">Payment History</h2>
+                <button onclick="exportPaymentsPDF()" class="h-10 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90">Export PDF</button>
+            </div>
+
+            <div class="p-4 border-b border-slate-100 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                <div>
+                    <label for="filterWorker" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Worker</label>
+                    <select id="filterWorker" title="Filter payments by worker" onchange="applyFilters()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="">All Workers</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterSite" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Site</label>
+                    <select id="filterSite" title="Filter payments by site" onchange="applyFilters()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="">All Sites</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filterMode" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Payment Mode</label>
+                    <select id="filterMode" title="Filter payments by mode" onchange="applyFilters()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="">All Modes</option>
+                        <option value="cash">Cash</option>
+                        <option value="online">Online</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Date Range</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="date" id="filterStartDate" title="Start date for filtering payments" onchange="applyFilters()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <input type="date" id="filterEndDate" title="End date for filtering payments" onchange="applyFilters()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-scroll overflow-x-auto">
+                <table class="w-full min-w-[780px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">No.</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Payment Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Worker Name</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Site Name</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider">Amount (₹)</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Mode</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsTableBody">
+                        <tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">Loading payments...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-sm text-slate-600 text-center sm:text-left">
+                    Showing <span id="showingStart">0</span> to <span id="showingEnd">0</span> of <span id="totalRecords">0</span> records
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="previousPage()" id="prevBtn" class="h-10 px-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-50" disabled>Previous</button>
+                    <span id="pageInfo" class="h-10 px-3 rounded-lg bg-slate-100 text-slate-700 font-semibold inline-flex items-center">Page 1</span>
+                    <button onclick="nextPage()" id="nextBtn" class="h-10 px-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 disabled:opacity-50" disabled>Next</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="attendance-form.html">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Add</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="config.js"></script>
+    <script src="offline-queue.js"></script>
+    <script src="payment-logic.js"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const menuPanel = document.getElementById('menuPanel');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function toggleMenu() {
+            menuPanel.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+                menuPanel.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

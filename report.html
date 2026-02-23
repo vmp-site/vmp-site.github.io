@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Manager - Reports</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+        .table-scroll::-webkit-scrollbar { height: 6px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+
+        .filter-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .filter-buttons.three-col {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .filter-btn {
+            padding: 0.5rem 0.625rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 2px solid var(--gray-300);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            color: #000;
+        }
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+        }
+
+        .search-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .search-container { position: relative; width: 100%; }
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 2px solid var(--gray-300);
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: white;
+            box-sizing: border-box;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .totals-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .total-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--gray-200);
+            border-left: 4px solid var(--primary-color);
+        }
+        .total-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .total-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .report-table {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 1rem;
+        }
+        .table-header {
+            background: white;
+            color: #111;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--gray-200);
+            flex-wrap: wrap;
+        }
+        .records-info {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #111;
+            opacity: 1;
+        }
+        .table-content { padding: 1rem; overflow-x: auto; }
+
+        .report-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .report-table th {
+            background: white;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 700;
+            color: #111;
+            border-bottom: 2px solid var(--gray-300);
+        }
+        .report-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--gray-200);
+            color: #222;
+        }
+
+        .type-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .type-attendance { background: #f39c12; color: white; }
+        .type-payment { background: var(--success-color); color: white; }
+        .type-transfer { background: #e74c3c !important; color: white; }
+        .type-received { background: #27ae60 !important; color: white; }
+
+        .pagination-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-top: 1px solid var(--gray-200);
+            align-items: center;
+        }
+        .pagination-info {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.375rem;
+            background: white;
+            color: var(--gray-700);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .page-numbers { display: flex; gap: 0.25rem; }
+        .page-number {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.25rem;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .page-number:hover:not(.active) { background: var(--gray-100); border-color: var(--gray-400); }
+        .page-number.active {
+            background: var(--primary-color) !important;
+            color: white !important;
+            border-color: var(--primary-color) !important;
+            cursor: default;
+        }
+        .page-ellipsis { padding: 0.5rem 0.75rem; color: var(--gray-500); }
+
+        .loading { text-align: center; padding: 2rem; color: var(--gray-600); font-weight: 500; }
+        .no-data { text-align: center; padding: 2rem; color: var(--gray-500); font-weight: 500; }
+
+        .report-no-data-hidden { display: none; }
+        .report-table-hidden { display: none; }
+        .pagination-container-hidden { display: none !important; }
+
+        .entity-select-wrapper-hidden { display: none; }
+        .search-actions { display: flex; gap: 0.5rem; }
+        .clear-search-btn-hidden { display: none; }
+
+        @media (min-width: 768px) {
+            .filter-buttons { grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+            .filter-btn { padding: 0.625rem 0.875rem; font-size: 0.875rem; }
+            .totals-section { grid-template-columns: repeat(4, 1fr); }
+            .search-controls { flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; }
+            .search-container { max-width: 420px; }
+        }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen pb-24">
+    <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[24px]">construction</span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+                        <h1 class="text-lg font-bold tracking-tight">Reports</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button id="menuBtn" type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" onclick="toggleMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+                    <span class="material-symbols-outlined text-[22px]">account_circle</span>
+                </a>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+                    <a href="received.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Received</a>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container max-w-7xl mx-auto p-4">
+        <section class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="filter-buttons" id="timeFilters">
+                <button class="filter-btn active" data-filter="today" type="button">Today</button>
+                <button class="filter-btn" data-filter="last7days" type="button">Last 7 Days</button>
+                <button class="filter-btn" data-filter="last30days" type="button">Last 30 Days</button>
+                <button class="filter-btn" data-filter="all" type="button">All Data</button>
+            </div>
+
+            <div class="filter-buttons three-col" id="categoryFilters">
+                <button class="filter-btn active" data-category="all" type="button">All</button>
+                <button class="filter-btn" data-category="worker" type="button">Worker</button>
+                <button class="filter-btn" data-category="site" type="button">Site</button>
+            </div>
+
+            <div class="filter-buttons three-col" id="paymentTypeFilters">
+                <button class="filter-btn active" data-paymenttype="all" type="button">All Types</button>
+                <button class="filter-btn" data-paymenttype="given" type="button">📤 Given (Transfer)</button>
+                <button class="filter-btn" data-paymenttype="received" type="button">📥 Received</button>
+            </div>
+
+            <div class="search-controls entity-select-wrapper-hidden" id="entitySelectWrapper">
+                <div class="search-container">
+                    <select id="entitySelect" class="search-input" title="Select worker or site"></select>
+                </div>
+            </div>
+
+            <div class="search-controls">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search..." class="search-input">
+                </div>
+                <div class="search-actions">
+                    <button id="clearSearch" class="btn btn-secondary clear-search-btn-hidden" type="button">Clear</button>
+                    <button id="exportReportPDF" class="btn btn-primary" onclick="exportCurrentReportPDF()" type="button">Export PDF</button>
+                </div>
+            </div>
+
+            <div class="totals-section">
+                <div class="total-card work">
+                    <div class="total-label">Total Work</div>
+                    <div class="total-value" id="totalWorkAmount">₹0</div>
+                </div>
+                <div class="total-card paid">
+                    <div class="total-label">Total Paid</div>
+                    <div class="total-value" id="totalPaidAmount">₹0</div>
+                </div>
+                <div class="total-card received">
+                    <div class="total-label">Total Received</div>
+                    <div class="total-value" id="totalReceivedAmount">₹0</div>
+                </div>
+                <div class="total-card pending">
+                    <div class="total-label">Pending Balance</div>
+                    <div class="total-value" id="pendingBalance">₹0</div>
+                </div>
+            </div>
+
+            <div class="report-table">
+                <div class="table-header">
+                    <span id="tableTitle">All Records - Today</span>
+                    <span id="recordsInfo" class="records-info">Showing 0 records</span>
+                </div>
+                <div class="table-content table-scroll">
+                    <div id="reportLoading" class="loading">Loading report data...</div>
+
+                    <div id="reportNoData" class="no-data report-no-data-hidden">
+                        No data found for selected criteria
+                    </div>
+
+                    <table id="reportTable" class="report-table-hidden min-w-[680px]">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody"></tbody>
+                    </table>
+
+                    <div id="paginationContainer" class="pagination-container pagination-container-hidden">
+                        <div class="pagination-info">
+                            <span id="paginationInfo">Showing records</span>
+                        </div>
+                        <div class="pagination-controls">
+                            <button id="prevPage" class="pagination-btn" disabled type="button">← Previous</button>
+                            <span id="pageNumbers" class="page-numbers"></span>
+                            <button id="nextPage" class="pagination-btn" disabled type="button">Next →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="api.js"></script>
+    <script src="config.js"></script>
+    <script src="calculations.js"></script>
+    <script src="pdf-export.js"></script>
+    <script src="report.js"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const menuPanel = document.getElementById('menuPanel');
+        const entitySelectWrapper = document.getElementById('entitySelectWrapper');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function toggleMenu() {
+            menuPanel.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+                menuPanel.classList.add('hidden');
+            }
+        });
+
+        // Keep compatibility with report.js selectWrapper.style.display toggles.
+        const wrapperObserver = new MutationObserver(() => {
+            if (entitySelectWrapper.style.display === 'none') {
+                entitySelectWrapper.classList.add('entity-select-wrapper-hidden');
+            } else if (entitySelectWrapper.style.display === 'block') {
+                entitySelectWrapper.classList.remove('entity-select-wrapper-hidden');
+            }
+        });
+        wrapperObserver.observe(entitySelectWrapper, { attributes: true, attributeFilter: ['style'] });
+
+        function exportCurrentReportPDF() {
+            exportGeneralReportPDF(currentFilter);
+        }
+    </script>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="attendance-form.html">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Add</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+</body>
+</html>

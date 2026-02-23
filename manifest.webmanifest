@@ -1,0 +1,26 @@
+{
+  "name": "Work Manager",
+  "short_name": "WorkMgr",
+  "description": "Work, attendance, payments and reports for daily site operations",
+  "start_url": "./login-new.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f6f8",
+  "theme_color": "#144bb8",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "./icons/app-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/app-icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

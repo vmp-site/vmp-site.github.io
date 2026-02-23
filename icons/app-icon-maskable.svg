@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Work Manager maskable icon">
+  <rect width="512" height="512" fill="#144bb8"/>
+  <rect x="90" y="110" width="332" height="292" rx="40" fill="#ffffff"/>
+  <rect x="124" y="160" width="210" height="26" rx="13" fill="#dbe7ff"/>
+  <rect x="124" y="206" width="264" height="18" rx="9" fill="#e8eefc"/>
+  <rect x="124" y="236" width="230" height="18" rx="9" fill="#e8eefc"/>
+  <rect x="124" y="266" width="180" height="18" rx="9" fill="#e8eefc"/>
+  <circle cx="360" cy="334" r="62" fill="#144bb8"/>
+  <path d="M334 334h52M360 308v52" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+</svg>

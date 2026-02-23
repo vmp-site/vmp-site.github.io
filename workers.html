@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Manager - Workers</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen flex flex-col">
+    <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="bg-primary text-white p-2 rounded-lg"><span class="material-symbols-outlined block">engineering</span></div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+                        <h1 class="text-lg font-bold tracking-tight">Workers</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button id="menuBtn" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" type="button" onclick="toggleMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+                    <span class="material-symbols-outlined text-[22px]">account_circle</span>
+                </a>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+                    <a href="sites.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Sites</a>
+                    <a href="profile.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Profile</a>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-5 pb-24">
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
+            <div class="p-4 border-b border-slate-100">
+                <h2 class="font-bold text-lg flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">person_add</span>
+                    Add Worker
+                </h2>
+            </div>
+            <div class="p-4">
+                <form id="addWorkerForm" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label for="name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Worker Name</label>
+                        <input type="text" id="name" placeholder="Enter worker name" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+                    <div>
+                        <label for="phone" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Phone</label>
+                        <input type="tel" id="phone" placeholder="10 digit number" required pattern="[0-9]{10}" maxlength="10" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+                    <div>
+                        <label for="position" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Position</label>
+                        <select id="position" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="">Select Position</option>
+                            <option value="Karigar">Karigar</option>
+                            <option value="Majur">Majur</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="worker_type" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Type</label>
+                        <select id="worker_type" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="">Select Type</option>
+                            <option value="New">New</option>
+                            <option value="Old">Old</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="assigned_sites" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Assigned Sites (Optional)</label>
+                        <select id="assigned_sites" multiple class="w-full min-h-[120px] rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="None">None</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="md:col-span-2 h-11 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90">Add Worker</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex flex-col gap-3">
+                <h2 class="text-lg font-bold">Workers List</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div class="relative md:col-span-1">
+                        <span class="material-symbols-outlined text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 text-[20px]">search</span>
+                        <input id="workerSearch" type="text" placeholder="Search by name/phone/site" class="w-full h-10 pl-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+                    <select id="positionFilter" aria-label="Filter by position" class="h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="all">All Positions</option>
+                        <option value="Karigar">Karigar</option>
+                        <option value="Majur">Majur</option>
+                    </select>
+                    <select id="typeFilter" aria-label="Filter by worker type" class="h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="all">All Types</option>
+                        <option value="New">New</option>
+                        <option value="Old">Old</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[740px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">S.No</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Name</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Phone</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Position</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Type</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Sites</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workersBody">
+                        <tr>
+                            <td colspan="7" class="px-4 py-10 text-center text-slate-500">Loading workers...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="editWorkerModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/45" id="editWorkerModalBackdrop"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
+            <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-[92vh] overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <button id="editModalBackBtn" type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <h3 class="text-base font-bold">Edit Worker</h3>
+                <button id="closeModalBtn" type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Close">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <form id="editModalForm" class="p-4 space-y-3 overflow-y-auto max-h-[calc(92vh-140px)]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label for="modal_name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Worker Name</label>
+                        <input type="text" id="modal_name" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary" placeholder="Enter worker name">
+                    </div>
+                    <div>
+                        <label for="modal_phone" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Phone</label>
+                        <input type="tel" id="modal_phone" required pattern="\d{10}" maxlength="10" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary" placeholder="10 digit number">
+                    </div>
+                    <div>
+                        <label for="modal_position" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Position</label>
+                        <select id="modal_position" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="Karigar">Karigar</option>
+                            <option value="Majur">Majur</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="modal_worker_type" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Type</label>
+                        <select id="modal_worker_type" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="New">New</option>
+                            <option value="Old">Old</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="modal_assigned_sites" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Assigned Sites (Optional)</label>
+                    <select id="modal_assigned_sites" multiple aria-label="Modal assigned sites" title="Modal assigned sites" class="w-full min-h-[120px] rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="None">None</option>
+                    </select>
+                </div>
+            </form>
+
+            <div class="px-4 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+                <button id="editCancelBtn" type="button" class="h-10 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100">Cancel</button>
+                <button id="editSaveBtn" type="button" class="h-10 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90">Save Changes</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-primary" href="workers.html">
+                <span class="material-symbols-outlined text-[24px]">engineering</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Workers</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="config.js"></script>
+    <script src="workers.js"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const menuPanel = document.getElementById('menuPanel');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function toggleMenu() {
+            menuPanel.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+                menuPanel.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

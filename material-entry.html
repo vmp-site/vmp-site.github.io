@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Work Manager - Material Entry</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+	<script>
+		tailwind.config = {
+			darkMode: 'class',
+			theme: {
+				extend: {
+					colors: {
+						primary: '#144bb8',
+						'background-light': '#f6f6f8'
+					},
+					fontFamily: {
+						display: ['Inter', 'sans-serif']
+					}
+				}
+			}
+		};
+	</script>
+
+	<!-- jsPDF for premium PDF export -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+	<style>
+		body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+		.table-scroll::-webkit-scrollbar { height: 6px; }
+		.table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+		/* Page-specific minimal tweaks keeping global style.css as base */
+		.material-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 1rem;
+			align-items: end;
+		}
+		@media (max-width: 900px) { .material-grid { grid-template-columns: repeat(2, 1fr); } }
+		@media (max-width: 600px) { .material-grid { grid-template-columns: 1fr; } }
+
+		.section-title { font-size: 1rem; font-weight: 600; color: var(--gray-900); margin: 0 0 0.75rem; }
+		.divider { margin-top: 1rem; padding-top: 1rem; border-top: 2px solid var(--gray-200); }
+		.btn-export { background: var(--secondary); color: white; width: 100%; padding: 0.75rem; margin: 0.75rem 0; }
+		.amount-badge { background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+		.message { display: none; margin-bottom: 0.75rem; }
+		.message.success { display: block; background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; padding: 12px 16px; border-radius: 6px; }
+		.message.error { display: block; background: #fee2e2; color: #7f1d1d; border-left: 4px solid #ef4444; padding: 12px 16px; border-radius: 6px; }
+
+		/* Ensure table borders render consistently */
+		.material-table { width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; }
+		.material-table th { padding: 0.5rem; text-align: left; font-size: 0.875rem; font-weight: 600; border: 1px solid #e5e7eb; }
+		.material-table td { padding: 0.5rem; text-align: left; font-size: 0.875rem; border: 1px solid #e5e7eb; }
+		.table-wrapper { overflow-x: auto; }
+
+		/* Action buttons styling */
+		.action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600; transition: all 0.2s; }
+		.update-btn { background: #3b82f6; color: white; }
+		.update-btn:hover { background: #2563eb; transform: scale(1.05); }
+		.delete-btn { background: #ef4444; color: white; }
+		.delete-btn:hover { background: #dc2626; transform: scale(1.05); }
+
+		/* Modal styles */
+		.modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; overflow-y: auto; }
+		.modal.active { overflow-y: auto; }
+		.modal-content { background: white; padding: 2rem; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; margin: auto; }
+		.modal-header { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+		.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500); }
+		.modal-body { margin-bottom: 1.5rem; overflow-y: auto; max-height: calc(90vh - 200px); }
+		.modal-footer { display: flex; gap: 0.5rem; }
+		.modal-footer button { flex: 1; padding: 0.75rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+
+		.mt-1 { margin-top: 1rem; }
+		.span-all { grid-column: 1 / -1; }
+		.flex-row-gap { display: flex; gap: 0.5rem; }
+		.mt-075 { margin-top: 0.75rem; }
+		.actions-row { grid-column: 1 / -1; display: flex; gap: 0.5rem; align-items: flex-end; }
+		.flex-1 { flex: 1; }
+		.note-textarea { padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--gray-300); width: 100%; min-height: 60px; font-family: inherit; font-size: 0.875rem; }
+		.loading-cell { text-align: center; padding: 2rem; color: var(--gray-600); }
+		.mb-1 { margin-bottom: 1rem; }
+		.btn-save-blue { background: #3b82f6; }
+	</style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen pb-24">
+	<header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+		<div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+			<div class="flex items-center gap-3">
+				<button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+					<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+				</button>
+				<div class="flex items-center gap-2">
+					<span class="material-symbols-outlined text-primary text-[24px]">construction</span>
+					<div class="flex flex-col leading-tight">
+						<span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+						<h1 class="text-lg font-bold tracking-tight">Material Entry</h1>
+					</div>
+				</div>
+			</div>
+			<div class="relative flex items-center gap-2">
+				<button id="menuBtn" type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" onclick="toggleMenu()">
+					<span class="material-symbols-outlined text-[20px]">more_vert</span>
+				</button>
+				<a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+					<span class="material-symbols-outlined text-[22px]">account_circle</span>
+				</a>
+				<button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+					<span class="material-symbols-outlined text-[20px]">logout</span>
+					<span>Logout</span>
+				</button>
+				<div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+					<a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+					<a href="report.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Transactions</a>
+					<button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<div class="container max-w-7xl mx-auto p-4 space-y-5">
+		<section class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+			<div id="message" class="message"></div>
+
+			<!-- Add Material Form -->
+			<h2 class="text-lg font-bold mb-4">Add Material</h2>
+			<div class="material-grid">
+				<div class="input-group">
+					<label for="entryDate" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Date</label>
+					<input type="date" id="entryDate" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+				</div>
+
+				<div class="input-group">
+					<label for="siteName" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Site</label>
+					<select id="siteName" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+						<option value="">Select Site</option>
+					</select>
+				</div>
+
+				<div class="input-group">
+					<label for="category" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Category</label>
+					<select id="category" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+						<option value="">Select</option>
+						<option value="plumbing">Plumbing</option>
+						<option value="electric">Electric</option>
+						<option value="still">Still</option>
+						<option value="kapchi">Kapchi</option>
+						<option value="reti">Reti</option>
+						<option value="eto">Eto</option>
+						<option value="mati-puran">Mati Puran</option>
+						<option value="stylies">Stylies</option>
+						<option value="pathar">Pathar</option>
+						<option value="darvaja-bari">Darvaja-Bari</option>
+						<option value="ciment">Ciment</option>
+						<option value="lapi-color">Lapi-Color</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="material-grid mt-1">
+				<div class="input-group">
+					<label for="amount" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Amount (₹)</label>
+					<input type="number" id="amount" step="0.01" placeholder="0.00" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+				</div>
+
+				<div class="input-group">
+					<label for="quantity" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Quantity</label>
+					<input type="number" id="quantity" step="0.01" placeholder="0" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+				</div>
+
+				<!-- Note should appear right after Quantity -->
+				<div class="input-group span-all">
+					<label for="note" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Note</label>
+					<textarea id="note" class="note-textarea" placeholder="Notes..."></textarea>
+				</div>
+
+				<!-- Place Add/Clear buttons after Note -->
+				<div class="actions-row">
+					<button class="h-11 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 flex-1" onclick="addMaterial()" type="button">Add</button>
+					<button class="h-11 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 flex-1" onclick="clearForm()" type="button">Clear</button>
+				</div>
+			</div>
+
+			<!-- Filter Section -->
+			<div class="divider">
+				<div class="section-title">Filter Materials</div>
+				<div class="material-grid">
+					<div class="input-group">
+						<label for="filterDateFrom" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">From</label>
+						<input type="date" id="filterDateFrom" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+					</div>
+
+					<div class="input-group">
+						<label for="filterDateTo" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">To</label>
+						<input type="date" id="filterDateTo" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+					</div>
+
+					<div class="input-group">
+						<label for="filterSite" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Site</label>
+						<select id="filterSite" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+							<option value="">All Sites</option>
+						</select>
+					</div>
+
+					<div class="input-group">
+						<label for="filterCategory" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Category</label>
+						<select id="filterCategory" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+							<option value="">All</option>
+							<option value="plumbing">Plumbing</option>
+							<option value="electric">Electric</option>
+							<option value="still">Still</option>
+							<option value="kapchi">Kapchi</option>
+							<option value="reti">Reti</option>
+							<option value="eto">Eto</option>
+							<option value="mati-puran">Mati Puran</option>
+							<option value="stylies">Stylies</option>
+							<option value="pathar">Pathar</option>
+							<option value="darvaja-bari">Darvaja-Bari</option>
+							<option value="ciment">Ciment</option>
+							<option value="lapi-color">Lapi-Color</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="flex-row-gap mt-075">
+					<button class="h-11 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 flex-1" onclick="applyFilters()" type="button">Filter</button>
+					<button class="h-11 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 flex-1" onclick="clearFilters()" type="button">Reset</button>
+				</div>
+			</div>
+		</section>
+
+		<!-- PDF Export -->
+		<button class="h-11 px-4 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700" onclick="exportPDF()" type="button">Export PDF</button>
+
+		<!-- Materials Table -->
+		<section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+			<div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
+				<h3 class="text-lg font-bold">Materials</h3>
+			</div>
+			<div class="table-scroll overflow-x-auto">
+				<table class="attendance-table material-table">
+					<thead class="bg-primary text-white">
+						<tr>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">#</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Date</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Site</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Category</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Amount</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Qty</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Note</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Update</th>
+							<th class="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-left">Delete</th>
+						</tr>
+					</thead>
+					<tbody id="materialsBody">
+						<tr><td colspan="9" class="loading-cell">Loading materials...</td></tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+
+	<!-- Update Material Modal -->
+	<div id="updateModal" class="modal">
+		<div class="modal-content">
+			<div class="modal-header">
+				<span>Update Material</span>
+				<button class="modal-close" onclick="closeUpdateModal()">×</button>
+			</div>
+			<div id="modalMessage" class="message"></div>
+			<div class="modal-body">
+				<input type="hidden" id="updateMaterialId">
+				<div class="input-group mb-1">
+					<label for="updateEntryDate">Date:</label>
+					<input type="date" id="updateEntryDate" required>
+				</div>
+				<div class="input-group mb-1">
+					<label for="updateSiteName">Site:</label>
+					<select id="updateSiteName" required>
+						<option value="">Select Site</option>
+					</select>
+				</div>
+				<div class="input-group mb-1">
+					<label for="updateCategory">Category:</label>
+					<select id="updateCategory" required>
+						<option value="">Select</option>
+						<option value="plumbing">Plumbing</option>
+						<option value="electric">Electric</option>
+						<option value="still">Still</option>
+						<option value="kapchi">Kapchi</option>
+						<option value="reti">Reti</option>
+						<option value="eto">Eto</option>
+						<option value="mati-puran">Mati Puran</option>
+						<option value="stylies">Stylies</option>
+						<option value="pathar">Pathar</option>
+						<option value="darvaja-bari">Darvaja-Bari</option>
+						<option value="ciment">Ciment</option>
+						<option value="lapi-color">Lapi-Color</option>
+					</select>
+				</div>
+				<div class="input-group mb-1">
+					<label for="updateAmount">Amount (₹):</label>
+					<input type="number" id="updateAmount" step="0.01" required>
+				</div>
+				<div class="input-group mb-1">
+					<label for="updateQuantity">Quantity:</label>
+					<input type="number" id="updateQuantity" step="0.01" required>
+				</div>
+				<div class="input-group">
+					<label for="updateNote">Note:</label>
+					<textarea id="updateNote" class="note-textarea"></textarea>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="h-11 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 btn-save-blue" onclick="submitUpdate(); return false;">Save Changes</button>
+				<button type="button" class="h-11 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100" onclick="closeUpdateModal(); return false;">Cancel</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Bottom Navigation -->
+	<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+		<div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+			<a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+				<span class="material-symbols-outlined text-[24px]">home</span>
+				<span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+			</a>
+			<a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="attendance-form.html">
+				<span class="material-symbols-outlined text-[24px]">add_circle</span>
+				<span class="text-[10px] font-medium uppercase tracking-wider">Add</span>
+			</a>
+			<a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+				<span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+				<span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+			</a>
+			<a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+				<span class="material-symbols-outlined text-[24px]">account_circle</span>
+				<span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+			</a>
+		</div>
+	</nav>
+
+	<script src="config.js"></script>
+	<script src="material-logic.js"></script>
+	<script>
+		const menuBtn = document.getElementById('menuBtn');
+		const menuPanel = document.getElementById('menuPanel');
+
+		function handleBack() {
+			if (window.history.length > 1) {
+				window.history.back();
+			} else {
+				window.location.href = 'index.html';
+			}
+		}
+
+		function toggleMenu() {
+			menuPanel.classList.toggle('hidden');
+		}
+
+		document.addEventListener('click', (event) => {
+			if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+				menuPanel.classList.add('hidden');
+			}
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Manager - Worker Profile</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+        .table-scroll::-webkit-scrollbar { height: 6px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen flex flex-col">
+    <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="bg-primary text-white p-2 rounded-lg"><span class="material-symbols-outlined block">person</span></div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">Worker Profile</span>
+                        <h1 id="workerName" class="text-lg font-bold tracking-tight">Loading...</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button id="menuBtn" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" type="button" onclick="toggleMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+                    <span class="material-symbols-outlined text-[22px]">account_circle</span>
+                </a>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+                    <a href="workers.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">All Workers</a>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onclick="openEditModal()">Edit Profile</button>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-5 pb-24">
+        <!-- Worker Info Card -->
+        <div class="bg-gradient-to-br from-primary to-blue-800 text-white rounded-xl p-6 mb-5 shadow-lg" id="workerInfo">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider opacity-90">Name</div>
+                    <div class="text-sm font-bold mt-1" id="workerNameCard">-</div>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider opacity-90">Phone</div>
+                    <div class="text-sm font-bold mt-1" id="workerPhone">-</div>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider opacity-90">Position</div>
+                    <div class="text-sm font-bold mt-1" id="workerPosition">-</div>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider opacity-90">Type</div>
+                    <div class="text-sm font-bold mt-1" id="workerType">-</div>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider opacity-90">Sites</div>
+                    <div class="text-sm font-bold mt-1" id="workerSites">-</div>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider opacity-90">Locations</div>
+                    <div class="text-sm font-bold mt-1" id="workerSiteLocations">-</div>
+                </div>
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-wider opacity-90">Balance</div>
+                    <div class="text-sm font-bold mt-1" id="workerBalance">₹0</div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6 flex-wrap">
+                <button class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg font-semibold text-sm transition" onclick="openEditModal()">
+                    <span class="material-symbols-outlined inline text-[18px] align-middle mr-1">edit</span>Edit Profile
+                </button>
+                <button class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg font-semibold text-sm transition" onclick="goToPayment()">
+                    <span class="material-symbols-outlined inline text-[18px] align-middle mr-1">payments</span>Make Payment
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-5">
+            <h3 class="text-base font-bold mb-4">🔍 Filter Records</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Date Filter</label>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="px-3 py-2 bg-primary text-white rounded-lg text-xs font-semibold" data-filter="all" onclick="setDateFilter('all')">All</button>
+                        <button class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold" data-filter="today" onclick="setDateFilter('today')">Today</button>
+                        <button class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-semibold" data-filter="custom" onclick="setDateFilter('custom')">Custom</button>
+                    </div>
+                    <div id="customDateInputs" class="hidden mt-3 space-y-2">
+                        <input type="date" id="startDate" title="Start Date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" onchange="applyCustomDateFilter()">
+                        <input type="date" id="endDate" title="End Date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" onchange="applyCustomDateFilter()">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Site Filter</label>
+                    <select id="siteFilter" title="Site Filter" onchange="applySiteFilter()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                        <option value="all">All Sites</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance History -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-5">
+            <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">assignment_turned_in</span>
+                    Attendance History
+                </h3>
+                <div class="flex gap-2">
+                    <button class="px-3 py-2 bg-green-500 text-white hover:bg-green-600 rounded-lg text-xs font-semibold" onclick="exportAttendancePDF()">
+                        <span class="material-symbols-outlined inline text-[16px] align-middle">file_download</span>
+                    </button>
+                    <button class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs font-semibold" onclick="toggleAttendanceSort()">
+                        <span id="attendanceSortText">Latest First</span>
+                    </button>
+                </div>
+            </div>
+            <div class="table-scroll overflow-x-auto">
+                <table class="w-full min-w-[620px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">S.No</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Site</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Work Type</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Work Title</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider">Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceBody">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-slate-500">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+                <div id="attendancePageInfo" class="text-xs text-slate-600">Page 1</div>
+                <div class="flex gap-2">
+                    <button id="attendancePrevBtn" class="px-3 py-2 border border-slate-300 hover:bg-slate-100 rounded-lg text-xs font-semibold" onclick="goAttendancePrevPage()">← Previous</button>
+                    <button id="attendanceNextBtn" class="px-3 py-2 border border-slate-300 hover:bg-slate-100 rounded-lg text-xs font-semibold" onclick="goAttendanceNextPage()">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-5">
+            <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">payments</span>
+                    Payment History
+                </h3>
+                <div class="flex gap-2">
+                    <button class="px-3 py-2 bg-blue-500 text-white hover:bg-blue-600 rounded-lg text-xs font-semibold" onclick="exportPaymentPDF()">
+                        <span class="material-symbols-outlined inline text-[16px] align-middle">file_download</span>
+                    </button>
+                    <button class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs font-semibold" onclick="togglePaymentSort()">
+                        <span id="paymentSortText">Latest First</span>
+                    </button>
+                </div>
+            </div>
+            <div class="table-scroll overflow-x-auto">
+                <table class="w-full min-w-[620px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">S.No</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Site</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider">Amount (₹)</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Type</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Note</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentBody">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-slate-500">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+                <div id="paymentPageInfo" class="text-xs text-slate-600">Page 1</div>
+                <div class="flex gap-2">
+                    <button id="paymentPrevBtn" class="px-3 py-2 border border-slate-300 hover:bg-slate-100 rounded-lg text-xs font-semibold" onclick="goPaymentPrevPage()">← Previous</button>
+                    <button id="paymentNextBtn" class="px-3 py-2 border border-slate-300 hover:bg-slate-100 rounded-lg text-xs font-semibold" onclick="goPaymentNextPage()">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Received Payments -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-5">
+            <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                <h3 class="text-base font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">download_done</span>
+                    Received from Worker
+                </h3>
+                <div class="flex gap-2">
+                    <button class="px-3 py-2 bg-amber-500 text-white hover:bg-amber-600 rounded-lg text-xs font-semibold" onclick="exportReceivedPDF()">
+                        <span class="material-symbols-outlined inline text-[16px] align-middle">file_download</span>
+                    </button>
+                    <button class="px-3 py-2 bg-slate-200 hover:bg-slate-300 rounded-lg text-xs font-semibold" onclick="toggleReceivedSort()">
+                        <span id="receivedSortText">Latest First</span>
+                    </button>
+                </div>
+            </div>
+            <div class="table-scroll overflow-x-auto">
+                <table class="w-full min-w-[620px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">S.No</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Date</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Site</th>
+                            <th class="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider">Amount (₹)</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Mode</th>
+                            <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Note</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receivedBody">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-slate-500">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between">
+                <div id="receivedPageInfo" class="text-xs text-slate-600">Page 1</div>
+                <div class="flex gap-2">
+                    <button id="receivedPrevBtn" class="px-3 py-2 border border-slate-300 hover:bg-slate-100 rounded-lg text-xs font-semibold" onclick="goReceivedPrevPage()">← Previous</button>
+                    <button id="receivedNextBtn" class="px-3 py-2 border border-slate-300 hover:bg-slate-100 rounded-lg text-xs font-semibold" onclick="goReceivedNextPage()">Next →</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/45"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-[90vh] overflow-hidden">
+                <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="text-base font-bold">Edit Worker</h3>
+                    <button type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" onclick="closeEditModal()">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+                <form id="editWorkerForm" onsubmit="updateWorkerProfile(event)" class="p-5 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Name *</label>
+                        <input type="text" id="editName" placeholder="Worker name" title="Worker name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-primary focus:ring-primary">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Phone *</label>
+                        <input type="tel" id="editPhone" placeholder="10 digit phone" title="Phone number" pattern="[0-9]{10}" maxlength="10" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-primary focus:ring-primary">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Position *</label>
+                        <select id="editPosition" title="Position" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-primary focus:ring-primary">
+                            <option value="">Select Position</option>
+                            <option value="Karigar">Karigar</option>
+                            <option value="Majur">Majur</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Type *</label>
+                        <select id="editWorkerType" title="Worker type" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-primary focus:ring-primary">
+                            <option value="">Select Type</option>
+                            <option value="New">New</option>
+                            <option value="Old">Old</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Assigned Sites</label>
+                        <select id="editAssignedSites" multiple title="Assigned sites" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:border-primary focus:ring-primary min-h-[100px]">
+                            <option value="None">None (Optional)</option>
+                        </select>
+                        <small class="text-slate-500">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                </form>
+                <div class="px-5 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+                    <button type="button" class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100" onclick="closeEditModal()">Cancel</button>
+                    <button type="button" class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90" onclick="updateWorkerProfile(event)">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="attendance-form.html">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Add</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="config.js"></script>
+    <script src="worker-profile.js"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const menuPanel = document.getElementById('menuPanel');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'workers.html';
+            }
+        }
+
+        function toggleMenu() {
+            menuPanel.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+                menuPanel.classList.add('hidden');
+            }
+        });
+
+        function setDateFilter(filter) {
+            const customInputs = document.getElementById('customDateInputs');
+            if (filter === 'custom') {
+                customInputs.classList.remove('hidden');
+            } else {
+                customInputs.classList.add('hidden');
+            }
+            // Call filter function
+            refreshAttendanceTableData();
+        }
+
+        function openEditModal() {
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

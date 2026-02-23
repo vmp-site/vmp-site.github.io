@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Manager - Received Payments</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+        .table-scroll::-webkit-scrollbar { height: 6px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+
+        .balance-card {
+            background: linear-gradient(120deg, #0ea5e9 0%, #2563eb 100%);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.85rem;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.25);
+            flex: 1;
+            min-width: 160px;
+        }
+        .balance-label { font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.35rem; letter-spacing: 0.01em; }
+        .balance-amount { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; }
+
+        .top-section {
+            display: flex;
+            gap: 0.75rem;
+            align-items: stretch;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .filters-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 180px;
+        }
+        .add-received-main-btn {
+            padding: 0.7rem 1.2rem;
+            background: #0f172a;
+            color: #e0f2fe;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0.6rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+            transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.2s ease;
+            white-space: nowrap;
+        }
+        .add-received-main-btn:hover {
+            background: #0b1228;
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.35);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .filter-chip {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 2rem;
+            background: white;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            text-align: center;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #374151;
+        }
+        .filter-chip.active {
+            background: #1e3a8a;
+            color: white;
+            border-color: #1e3a8a;
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.2);
+        }
+
+        .transactions-table {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+        .transactions-table table { width: 100%; border-collapse: collapse; }
+        .transactions-table th {
+            background: var(--primary-color);
+            padding: 0.875rem 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            border-bottom: 2px solid var(--gray-300);
+        }
+        .transactions-table td {
+            padding: 0.875rem 0.75rem;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 0.875rem;
+        }
+        .transactions-table tr:last-child td { border-bottom: none; }
+        .transactions-table tr:hover { background: var(--gray-50); }
+
+        .amount-positive { color: #10b981; font-weight: 600; }
+
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid var(--gray-200);
+            margin-top: 0.875rem;
+        }
+        .pagination-info { font-size: 0.875rem; color: var(--gray-600); }
+        .pagination-controls { display: flex; gap: 0.5rem; }
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 2px solid var(--gray-300);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            min-height: 40px;
+        }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .no-data { text-align: center; padding: 3rem 1rem; color: var(--gray-500); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 560px;
+            border-radius: 1rem;
+            overflow: hidden;
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            background: #1e3a8a;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-title { font-size: 1.25rem; font-weight: 600; color: white; }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+        .modal-body { padding: 1.25rem; }
+
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.875rem; }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--gray-300);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .btn {
+            padding: 0.875rem 1.25rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-primary { background: #10b981; color: white; }
+        .btn-primary:hover { background: #059669; }
+        .btn-secondary { background: #e5e7eb; color: #374151; }
+        .btn-secondary:hover { background: #d1d5db; }
+
+        .hidden-fab { display: none; }
+        .muted-meta { color: var(--gray-600); font-size: 0.875rem; }
+        .form-actions { display: flex; gap: 0.75rem; flex-direction: column; }
+        .optional-text { color: #94a3b8; font-size: 12px; }
+        .mb-05 { margin-bottom: 0.5rem; }
+        .resize-vertical { resize: vertical; }
+        .hidden-block { display: none; }
+
+        @media (max-width: 640px) {
+            .top-section { flex-direction: row; align-items: stretch; }
+            .balance-card { flex: 1; }
+            .filters-wrapper { flex: 0 0 150px; }
+            .add-received-main-btn { width: 100%; }
+            .filter-chip { flex: 1; min-height: 40px; font-size: 0.875rem; }
+            .pagination-container { flex-direction: column; gap: 0.75rem; align-items: stretch; }
+            .pagination-controls { justify-content: space-between; }
+        }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen pb-24">
+    <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[24px]">construction</span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+                        <h1 class="text-lg font-bold tracking-tight">Received Payments</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button id="menuBtn" type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" onclick="toggleMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+                    <span class="material-symbols-outlined text-[22px]">account_circle</span>
+                </a>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+                    <a href="report.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Transactions</a>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container max-w-7xl mx-auto p-4 space-y-4">
+        <section class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="top-section">
+                <div class="balance-card">
+                    <div class="balance-label">Total Received</div>
+                    <div class="balance-amount" id="totalReceived">₹0</div>
+                </div>
+                <div class="filters-wrapper">
+                    <button class="add-received-main-btn" onclick="openAddReceivedModal()" type="button">Add Received</button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <button class="filter-chip active" data-view="all" onclick="applyView('all')" type="button">All</button>
+                <button class="filter-chip" data-view="worker" onclick="applyView('worker')" type="button">👷 Worker</button>
+                <button class="filter-chip" data-view="site" onclick="applyView('site')" type="button">🏗️ Site</button>
+            </div>
+
+            <div id="selectWrapper" class="hidden mb-6">
+                <select id="entitySelect" class="form-input" onchange="applyEntityFilter(this.value)" title="Filter by selected worker or site">
+                    <option value="">Select...</option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-between mb-3">
+                <div class="text-lg font-bold">Transactions</div>
+                <div id="transactionCount" class="muted-meta">0 records</div>
+            </div>
+
+            <div id="transactionsTableWrapper" class="transactions-table table-scroll overflow-x-auto">
+                <table class="min-w-[640px]">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th id="thirdHeader">From</th>
+                            <th>Amount</th>
+                            <th>Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsList">
+                        <tr><td colspan="5" class="no-data">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="paginationContainer" class="pagination-container">
+                <div class="pagination-info" id="paginationInfo">Showing 0-0 of 0</div>
+                <div class="pagination-controls">
+                    <button id="prevBtn" class="pagination-btn" onclick="previousPage()" disabled type="button">← Previous</button>
+                    <button id="nextBtn" class="pagination-btn" onclick="nextPage()" disabled type="button">Next →</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <button class="add-received-btn hidden-fab" onclick="openAddReceivedModal()" type="button">+</button>
+
+    <div id="addReceivedModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add Received Payment</div>
+                <button class="close-modal" onclick="closeAddReceivedModal()" type="button">✕</button>
+            </div>
+            <div class="modal-body">
+                <form id="receivedForm" onsubmit="submitReceivedPayment(event)">
+                    <div class="form-group">
+                        <label class="form-label">Date *</label>
+                        <input type="date" id="receivedDate" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Site <span class="optional-text">(Optional)</span></label>
+                        <select id="receivedSite" class="form-input">
+                            <option value="">Select Site</option>
+                        </select>
+                        <input type="hidden" id="receivedSiteId">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Received From *</label>
+                        <select id="fromType" class="form-input" onchange="updateFromTypeOptions()" required>
+                            <option value="worker">👷 Worker</option>
+                            <option value="site">🏗️ Site (Revenue)</option>
+                            <option value="other">📝 Other Source</option>
+                        </select>
+                    </div>
+
+                    <div id="workerFromWrapper" class="form-group">
+                        <label class="form-label">Select Worker *</label>
+                        <input type="text" id="workerSearch" class="form-input mb-05" placeholder="Search worker by name or phone...">
+                        <select id="fromWorker" class="form-input" size="5" onchange="updateFromNameFromWorker()" required>
+                            <option value="">Choose Worker...</option>
+                        </select>
+                        <input type="hidden" id="fromWorkerId">
+                    </div>
+
+                    <div id="siteFromWrapper" class="form-group hidden-block">
+                        <label class="form-label">Select Site *</label>
+                        <select id="fromSite" class="form-input" onchange="updateFromNameFromSite()">
+                            <option value="">Choose Site...</option>
+                        </select>
+                        <input type="hidden" id="fromSiteId">
+                    </div>
+
+                    <div id="manualFromWrapper" class="form-group hidden-block">
+                        <label class="form-label">From (Name/Company) *</label>
+                        <input type="text" id="fromName" class="form-input" placeholder="Enter name or company">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Amount (₹) *</label>
+                        <input type="number" id="receivedAmount" class="form-input" placeholder="0.00" step="0.01" min="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Payment Mode *</label>
+                        <select id="paymentMode" class="form-input" required>
+                            <option value="">Select Mode</option>
+                            <option value="cash">Cash</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                            <option value="upi">UPI</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Note <span class="optional-text">(Optional)</span></label>
+                        <textarea id="receivedNote" class="form-input resize-vertical" rows="3" placeholder="Add any notes..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Save Payment</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeAddReceivedModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="received.js"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const menuPanel = document.getElementById('menuPanel');
+        const selectWrapper = document.getElementById('selectWrapper');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function toggleMenu() {
+            menuPanel.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+                menuPanel.classList.add('hidden');
+            }
+        });
+
+        // Keep compatibility with received.js which toggles selectWrapper.style.display
+        const observer = new MutationObserver(() => {
+            if (selectWrapper.style.display === 'none') {
+                selectWrapper.classList.add('hidden');
+            } else if (selectWrapper.style.display === 'block') {
+                selectWrapper.classList.remove('hidden');
+            }
+        });
+        observer.observe(selectWrapper, { attributes: true, attributeFilter: ['style'] });
+    </script>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="attendance-form.html">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Add</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="icons/app-icon.svg">
+    <link rel="apple-touch-icon" href="icons/app-icon.svg">
+    <title>Work Manager Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8',
+                        'background-dark': '#111621'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen flex flex-col">
+    <aside id="sidePanel" class="fixed top-0 left-0 h-full w-72 bg-white border-r border-slate-200 shadow-xl transform -translate-x-full transition-transform duration-200 z-40">
+        <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200">
+            <h2 class="font-bold text-primary">Work Manager</h2>
+            <button class="h-9 w-9 grid place-items-center rounded-full hover:bg-slate-100" type="button" onclick="toggleSidebar(false)">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <nav class="p-3 space-y-1 text-sm">
+            <a href="index.html" class="block px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold">Dashboard</a>
+            <a href="sites.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Sites</a>
+            <a href="workers.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Workers</a>
+            <a href="attendance-form.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Attendance</a>
+            <a href="payment-form.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Payments</a>
+            <a href="report.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Transactions</a>
+            <a href="positions.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Positions</a>
+            <a href="received.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Received</a>
+            <a href="material-entry.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Materials</a>
+            <a href="profile.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Profile</a>
+        </nav>
+    </aside>
+    <div id="sideBackdrop" class="hidden fixed inset-0 bg-black/30 z-30" onclick="toggleSidebar(false)"></div>
+
+    <header class="bg-white border-b border-primary/10 sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex flex-col leading-tight">
+                    <span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+                    <h1 class="text-lg font-bold tracking-tight text-primary">Dashboard</h1>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button id="topMenuBtn" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" type="button" onclick="toggleTopMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+                    <span class="material-symbols-outlined text-[22px]">account_circle</span>
+                </a>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="topMenu" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <button type="button" data-install-app class="hidden w-full text-left px-4 py-2 text-sm text-primary hover:bg-slate-50">Install App</button>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onclick="toggleSidebar(true)">Open Sidebar</button>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onclick="location.href='profile.html'">Go to Profile</button>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-6 mb-20">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold leading-tight">Manage sites, workers, attendance and payments</h2>
+            <p class="text-slate-500 mt-1 font-medium">Use search and filter to quickly open modules</p>
+        </div>
+
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <span id="syncDot" class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                <p id="syncStatusText" class="text-sm font-medium text-slate-700">Sync ready</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="queueCount" class="text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-600">Pending: 0</span>
+                <button id="syncNowBtn" type="button" class="h-9 px-3 rounded-lg border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-100">Sync Now</button>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="moduleSearch">Search</label>
+                <input id="moduleSearch" type="text" placeholder="Search module (e.g. workers, payments)" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="moduleFilter">Filter</label>
+                <select id="moduleFilter" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    <option value="all">All Modules</option>
+                    <option value="master">Master Data</option>
+                    <option value="entry">Entry</option>
+                    <option value="transaction">Transactions</option>
+                </select>
+            </div>
+        </section>
+
+        <section id="moduleGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="sites.html" data-name="sites" data-group="master" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">domain</span></div>
+                <span class="font-bold text-sm tracking-wide">Sites</span>
+            </a>
+            <a href="workers.html" data-name="workers" data-group="master" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">engineering</span></div>
+                <span class="font-bold text-sm tracking-wide">Workers</span>
+            </a>
+            <a href="attendance-form.html" data-name="attendance" data-group="entry" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">assignment_turned_in</span></div>
+                <span class="font-bold text-sm tracking-wide">Attendance</span>
+            </a>
+            <a href="payment-form.html" data-name="payments" data-group="entry" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">payments</span></div>
+                <span class="font-bold text-sm tracking-wide">Payments</span>
+            </a>
+            <a href="report.html" data-name="transactions report" data-group="transaction" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">receipt_long</span></div>
+                <span class="font-bold text-sm tracking-wide">Transactions</span>
+            </a>
+            <a href="positions.html" data-name="positions" data-group="master" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">badge</span></div>
+                <span class="font-bold text-sm tracking-wide">Positions</span>
+            </a>
+            <a href="received.html" data-name="received" data-group="transaction" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">download_done</span></div>
+                <span class="font-bold text-sm tracking-wide">Received</span>
+            </a>
+            <a href="material-entry.html" data-name="materials" data-group="entry" class="module-card group flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-xl border border-slate-200 hover:border-primary transition-all active:scale-95 min-h-[140px] shadow-sm">
+                <div class="p-4 bg-primary/5 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors"><span class="material-symbols-outlined text-3xl">inventory_2</span></div>
+                <span class="font-bold text-sm tracking-wide">Materials</span>
+            </a>
+        </section>
+
+        <p id="emptyState" class="hidden text-center text-sm text-slate-500 mt-6">No module found for selected search/filter.</p>
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="attendance-form.html">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Add</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="config.js"></script>
+    <script src="offline-queue.js"></script>
+    <script src="pwa-init.js"></script>
+    <script>
+        const sidePanel = document.getElementById('sidePanel');
+        const sideBackdrop = document.getElementById('sideBackdrop');
+        const topMenu = document.getElementById('topMenu');
+        const topMenuBtn = document.getElementById('topMenuBtn');
+        const moduleSearch = document.getElementById('moduleSearch');
+        const moduleFilter = document.getElementById('moduleFilter');
+        const moduleCards = Array.from(document.querySelectorAll('.module-card'));
+        const emptyState = document.getElementById('emptyState');
+        const syncStatusText = document.getElementById('syncStatusText');
+        const queueCount = document.getElementById('queueCount');
+        const syncDot = document.getElementById('syncDot');
+        const syncNowBtn = document.getElementById('syncNowBtn');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'login-new.html';
+            }
+        }
+
+        function toggleSidebar(show) {
+            const open = typeof show === 'boolean' ? show : sidePanel.classList.contains('-translate-x-full');
+            sidePanel.classList.toggle('-translate-x-full', !open);
+            sideBackdrop.classList.toggle('hidden', !open);
+        }
+
+        function toggleTopMenu() {
+            topMenu.classList.toggle('hidden');
+        }
+
+        function refreshSyncStatus() {
+            if (!window.OfflineQueue) return;
+            const stats = window.OfflineQueue.getStats();
+            const pending = stats.total || 0;
+            queueCount.textContent = `Pending: ${pending}`;
+
+            if (!navigator.onLine) {
+                syncStatusText.textContent = pending > 0 ? 'Offline • Entries queued automatically' : 'Offline mode active';
+                syncDot.className = 'h-2.5 w-2.5 rounded-full bg-amber-500';
+                return;
+            }
+
+            if (pending > 0) {
+                syncStatusText.textContent = 'Online • Waiting to auto-sync';
+                syncDot.className = 'h-2.5 w-2.5 rounded-full bg-blue-500';
+            } else {
+                syncStatusText.textContent = 'All data synced';
+                syncDot.className = 'h-2.5 w-2.5 rounded-full bg-emerald-500';
+            }
+        }
+
+        async function manualSyncNow() {
+            if (!window.OfflineQueue) return;
+            syncNowBtn.disabled = true;
+            syncNowBtn.textContent = 'Syncing...';
+            try {
+                await window.OfflineQueue.process();
+                refreshSyncStatus();
+            } finally {
+                syncNowBtn.disabled = false;
+                syncNowBtn.textContent = 'Sync Now';
+            }
+        }
+
+        function applyModuleFilters() {
+            const search = moduleSearch.value.trim().toLowerCase();
+            const filter = moduleFilter.value;
+            let visibleCount = 0;
+
+            moduleCards.forEach((card) => {
+                const name = (card.dataset.name || '').toLowerCase();
+                const group = card.dataset.group || 'all';
+                const matchSearch = search === '' || name.includes(search);
+                const matchFilter = filter === 'all' || group === filter;
+                const visible = matchSearch && matchFilter;
+
+                card.classList.toggle('hidden', !visible);
+                if (visible) visibleCount += 1;
+            });
+
+            emptyState.classList.toggle('hidden', visibleCount > 0);
+        }
+
+        moduleSearch.addEventListener('input', applyModuleFilters);
+        moduleFilter.addEventListener('change', applyModuleFilters);
+        syncNowBtn.addEventListener('click', manualSyncNow);
+
+        if (window.OfflineQueue) {
+            window.OfflineQueue.init({ getBaseUrl: () => BASE_URL });
+            window.OfflineQueue.process();
+            refreshSyncStatus();
+            window.addEventListener('offline-queue-updated', refreshSyncStatus);
+            window.addEventListener('online', refreshSyncStatus);
+            window.addEventListener('offline', refreshSyncStatus);
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!topMenu.contains(event.target) && !topMenuBtn.contains(event.target)) {
+                topMenu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

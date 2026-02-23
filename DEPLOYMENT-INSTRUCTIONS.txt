@@ -1,0 +1,29 @@
+DEPLOYMENT STEPS
+================
+
+1. Open Google Apps Script Editor
+2. Delete ALL existing code
+3. Paste code from BACKEND-CODE.gs
+4. Click "Deploy" → "New deployment"
+5. Settings:
+   - Type: Web app
+   - Execute as: Me (your email)
+   - Who has access: Anyone
+6. Click "Deploy"
+7. Copy the Web app URL
+8. Paste URL in config.js as BASE_URL
+
+SHEET STRUCTURE
+================
+
+Sites sheet columns (row 1):
+site_id | site_name | location | client_name | total_contract | note
+
+Workers sheet columns (row 1):
+worker_id | name | phone | full_rate | half_rate | note
+
+Attendance sheet columns (row 1):
+date | site_id | worker_id | work_type | work_title | rate | note
+
+Payments sheet columns (row 1):
+date | site_id | worker_id | amount | type | payment_mode | note

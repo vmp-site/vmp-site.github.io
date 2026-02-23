@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Manager - Attendance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#144bb8',
+                        'background-light': '#f6f6f8'
+                    },
+                    fontFamily: {
+                        display: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        :root { --danger: #ef4444; --gray-600: #4b5563; }
+        body { font-family: 'Inter', sans-serif; min-height: 100dvh; }
+        .table-scroll::-webkit-scrollbar { height: 6px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .is-collapsed { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .section-kicker { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0 .25rem; }
+        .section-kicker h2 { display: flex; align-items: center; gap: .5rem; font-size: 1.125rem; font-weight: 700; }
+        .section-badge { border-radius: 9999px; padding: .25rem .6rem; font-size: .75rem; font-weight: 700; background: #e2e8f0; color: #475569; }
+    </style>
+</head>
+<body class="bg-background-light text-slate-900 min-h-screen pb-24">
+    <header class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Back" onclick="handleBack()">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[24px]">construction</span>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">Work Manager</span>
+                        <h1 class="text-lg font-bold tracking-tight">Attendance</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="relative flex items-center gap-2">
+                <button type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" title="Filters" onclick="toggleFilterPanel()">
+                    <span class="material-symbols-outlined text-[20px]">filter_list</span>
+                </button>
+                <button id="menuBtn" type="button" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Menu" onclick="toggleMenu()">
+                    <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                </button>
+                <a href="profile.html" class="h-10 w-10 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" aria-label="Profile">
+                    <span class="material-symbols-outlined text-[22px]">account_circle</span>
+                </a>
+                <button class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/20 text-primary font-semibold hover:bg-primary/5" type="button" onclick="logout()">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span>Logout</span>
+                </button>
+                <div id="menuPanel" class="hidden absolute right-0 top-12 min-w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-20">
+                    <a href="index.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Dashboard</a>
+                    <a href="report.html" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Transactions</a>
+                    <button type="button" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container max-w-7xl mx-auto p-4 space-y-5">
+        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+            <div class="section-kicker mb-3">
+                <h2>
+                    <span class="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
+                    Attendance Details
+                </h2>
+                <span class="section-badge">Required</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="input-group">
+                    <label for="date" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Select Date</label>
+                    <input type="date" id="date" name="date" required class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                </div>
+                <div class="site-row flex items-end gap-2">
+                    <div class="input-group grow">
+                        <label for="site_name" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Site Name</label>
+                        <select id="site_name" name="site_name" required onchange="mapSiteNameToId()" class="w-full h-11 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="">Select Site</option>
+                            <option value="ALL">📋 All Sites</option>
+                        </select>
+                        <input type="hidden" id="site_id" name="site_id">
+                    </div>
+                    <button type="button" class="h-11 w-11 grid place-items-center rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100" title="Filter options" onclick="toggleFilterPanel()">
+                        <span class="material-symbols-outlined text-[20px]">tune</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="workersSection" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 section-kicker">
+                <h2>
+                    <span class="material-symbols-outlined text-primary text-[20px]">groups</span>
+                    Workers List
+                </h2>
+                <span class="section-badge">Mark Attendance</span>
+            </div>
+            <div class="table-scroll custom-scrollbar overflow-x-auto">
+                <table class="attendance-table w-full min-w-[760px]">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th class="col-check px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider"><input type="checkbox" id="selectAll" aria-label="Select all workers"></th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Name</th>
+                            <th class="col-type px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Type</th>
+                            <th class="col-amount px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Amount</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Work Title (Optional)</th>
+                            <th class="col-actions px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workersBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="savedAttendanceSection" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-3">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-600 text-[20px]">task_alt</span>
+                    Attendance Done
+                </h2>
+                <span id="savedCount" class="inline-flex items-center rounded-full bg-primary/10 text-primary px-2 py-1 text-xs font-semibold">Records: 0</span>
+            </div>
+
+            <div class="px-4 py-3 grid grid-cols-1 md:grid-cols-3 gap-2 border-b border-slate-100">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="positionFilter">Filter by Position</label>
+                    <select id="positionFilter" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="all">All Positions</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="workTypeFilter">Filter by Work Type</label>
+                    <select id="workTypeFilter" onchange="filterSavedAttendance()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                        <option value="">All Types</option>
+                        <option value="Full Day">Full Day</option>
+                        <option value="Half Day">Half Day</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="toggleCompletedBtn" type="button" class="w-full h-10 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 inline-flex items-center justify-center gap-2" onclick="toggleCompletedRecords()">
+                        <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+                        Hide Attendance Done
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-scroll custom-scrollbar overflow-x-auto">
+                <table class="attendance-table w-full min-w-[860px]">
+                    <thead class="bg-slate-100 text-slate-600">
+                        <tr>
+                            <th class="col-done-check px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">✓</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Site</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Worker Name</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Position</th>
+                            <th class="col-type px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Type</th>
+                            <th class="col-amount px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Amount</th>
+                            <th class="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Work Title</th>
+                            <th class="col-actions px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="savedAttendanceBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="action-row flex flex-wrap gap-2">
+            <button type="button" id="submitAttendance" class="btn btn-primary h-11 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90">Save</button>
+            <button type="button" class="btn btn-secondary h-11 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100" onclick="window.history.back()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="filterModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/45 p-3 sm:p-4 flex items-center justify-center">
+            <div class="modal-card w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-[92vh] overflow-hidden">
+                <div class="modal-header px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                    <h2 class="modal-title text-lg font-bold">Filter Attendance</h2>
+                    <button type="button" class="btn-ghost h-9 w-9 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" onclick="closeFilterModal()">✕</button>
+                </div>
+
+                <div class="modal-grid p-4 space-y-3 overflow-y-auto max-h-[calc(92vh-130px)]">
+                    <div class="stack">
+                        <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="dateRangeFilter">📅 Date Range</label>
+                        <select id="dateRangeFilter" onchange="applyDateRangeFilter()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="single">Single Date</option>
+                            <option value="today">Today</option>
+                            <option value="week">Last 7 Days</option>
+                            <option value="month">Last 30 Days</option>
+                            <option value="custom">Custom Date Range</option>
+                        </select>
+
+                        <div id="customDateRange" class="subtle-card mt-2 p-3 rounded-lg border border-slate-200 bg-slate-50 is-collapsed">
+                            <div class="range-grid grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                    <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="customDateFrom">From Date</label>
+                                    <input type="date" id="customDateFrom" aria-label="From date" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                                </div>
+                                <div>
+                                    <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="customDateTo">To Date</label>
+                                    <input type="date" id="customDateTo" aria-label="To date" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-success mt-2 h-10 px-4 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700" onclick="applyCustomDateRange()">Apply Date Range</button>
+                        </div>
+                    </div>
+
+                    <div class="stack">
+                        <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="workerFilter">👷 Worker Filter</label>
+                        <select id="workerFilter" onchange="applyWorkerFilter()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="">All Workers</option>
+                        </select>
+                    </div>
+
+                    <div class="stack">
+                        <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="siteFilter">📍 Site Filter</label>
+                        <select id="siteFilter" onchange="applySiteFilter()" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="">All Sites</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-actions px-4 py-3 border-t border-slate-200 bg-slate-50 flex flex-wrap justify-end gap-2">
+                    <button type="button" class="btn btn-secondary h-10 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100" onclick="resetFilters()">Reset</button>
+                    <button type="button" class="btn btn-primary h-10 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90" onclick="exportAttendanceData()">📥 Export CSV</button>
+                    <button type="button" class="btn btn-secondary h-10 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100" onclick="closeFilterModal()">Close</button>
+                </div>
+            </div>
+    </div>
+
+    <div id="editRecordModal" class="modal-overlay hidden fixed inset-0 z-50 bg-black/45 p-3 sm:p-4 flex items-center justify-center">
+            <div class="modal-card w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+                <div class="modal-header px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                    <h2 class="modal-title text-lg font-bold">Edit Attendance</h2>
+                    <button type="button" class="btn-ghost h-9 w-9 grid place-items-center rounded-full border border-slate-200 text-slate-600 hover:bg-slate-100" onclick="closeEditModal()">✕</button>
+                </div>
+                <div class="modal-grid p-4 space-y-3">
+                    <div class="stack">
+                        <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="edit_work_type_modal">Type</label>
+                        <select id="edit_work_type_modal" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                            <option value="Full Day">Full Day</option>
+                            <option value="Half Day">Half Day</option>
+                        </select>
+                    </div>
+                    <div class="stack">
+                        <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="edit_work_amount_modal">Amount</label>
+                        <input type="number" id="edit_work_amount_modal" placeholder="Amount" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+                    <div class="stack">
+                        <label class="muted-label block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1" for="edit_work_title_modal">Work Title</label>
+                        <input type="text" id="edit_work_title_modal" placeholder="Work title" class="w-full h-10 rounded-lg border-slate-300 focus:border-primary focus:ring-primary">
+                    </div>
+                </div>
+                <div class="modal-actions px-4 py-3 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
+                    <button type="button" class="btn btn-secondary h-10 px-4 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100" onclick="closeEditModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary h-10 px-4 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90" onclick="saveEditModal()">Save</button>
+                </div>
+            </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="offline-queue.js"></script>
+    <script src="attendance-logic.js"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const menuPanel = document.getElementById('menuPanel');
+
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function toggleMenu() {
+            menuPanel.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!menuPanel.contains(event.target) && !menuBtn.contains(event.target)) {
+                menuPanel.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-20">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="index.html">
+                <span class="material-symbols-outlined text-[24px]">home</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-primary" href="attendance-form.html">
+                <span class="material-symbols-outlined text-[24px]">add_circle</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Add</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="report.html">
+                <span class="material-symbols-outlined text-[24px]">swap_horiz</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Transactions</span>
+            </a>
+            <a class="flex flex-1 flex-col items-center gap-1 text-slate-500 hover:text-primary" href="profile.html">
+                <span class="material-symbols-outlined text-[24px]">account_circle</span>
+                <span class="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            </a>
+        </div>
+    </nav>
+</body>
+</html>

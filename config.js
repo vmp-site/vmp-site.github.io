@@ -1706,8 +1706,14 @@ function applyLanguage(language) {
     const selectedLanguage = SUPPORTED_LANGUAGES.includes(language) ? language : 'en';
 
     try {
+        const activeElement = document.activeElement;
+        const activeSelect = activeElement && activeElement.tagName === 'SELECT' ? activeElement : null;
         const allElements = document.querySelectorAll('body *:not(script):not(style):not(noscript):not([data-i18n-skip]):not([data-i18n-skip] *)');
         allElements.forEach((element) => {
+            if (activeSelect && (element === activeSelect || element.closest('select') === activeSelect)) {
+                return;
+            }
+
             if (element.placeholder !== undefined && element.placeholder) {
                 if (!element.dataset.i18nOriginalPlaceholder) {
                     element.dataset.i18nOriginalPlaceholder = element.placeholder;
@@ -1841,6 +1847,7 @@ function injectLanguageIntoMenus() {
         if (!existingBackup) {
             const backupContainer = document.createElement('div');
             backupContainer.setAttribute('data-backup-menu-item', 'true');
+            backupContainer.setAttribute('data-i18n-skip', 'true');
             backupContainer.style.padding = '8px 10px';
             backupContainer.style.borderTop = '1px solid #e2e8f0';
 
@@ -1861,11 +1868,17 @@ function injectLanguageIntoMenus() {
             backupTypeLabel.style.marginBottom = '4px';
 
             const backupTypeSelect = document.createElement('select');
+            backupTypeSelect.setAttribute('data-i18n-skip', 'true');
             backupTypeSelect.className = 'w-full h-9 rounded-md border border-slate-300 text-sm text-slate-700 px-2';
             backupTypeSelect.innerHTML = `
                 <option value="json">${i18nText('JSON (Full Import Backup)')}</option>
                 <option value="csv">${i18nText('CSV (Counts Summary)')}</option>
             `;
+            ['click', 'mousedown', 'touchstart', 'touchend'].forEach((evt) => {
+                backupTypeSelect.addEventListener(evt, (event) => {
+                    event.stopPropagation();
+                }, { passive: true });
+            });
 
             backupTypeWrap.appendChild(backupTypeLabel);
             backupTypeWrap.appendChild(backupTypeSelect);
@@ -1988,6 +2001,7 @@ function initLanguageSystem() {
     let applyTimer = null;
     languageObserver = new MutationObserver(() => {
         if (i18nApplying) return;
+        if (document.activeElement && document.activeElement.tagName === 'SELECT') return;
         injectLanguageIntoMenus();
         injectTableDownloadControls();
         clearTimeout(applyTimer);

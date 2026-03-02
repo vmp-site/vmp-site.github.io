@@ -1,4 +1,6 @@
 (() => {
+  const INSTALL_PREPARE_FLAG = 'workToolInstallPrepareReload';
+
   function ensurePwaMeta() {
     const ensureTag = (selector, createTag) => {
       let el = document.querySelector(selector);
@@ -40,6 +42,15 @@
       const normalizedPath = window.location.pathname.replace(/\/[^/]*$/, '/');
       navigator.serviceWorker.register(`${normalizedPath}sw.js`).catch(() => {});
     });
+
+    if (sessionStorage.getItem(INSTALL_PREPARE_FLAG) === '1') {
+      sessionStorage.removeItem(INSTALL_PREPARE_FLAG);
+      setTimeout(() => {
+        if (!deferredPrompt && !isStandaloneMode()) {
+          showInstallHint('Install ready check complete. If prompt does not open, tap Install App once more.');
+        }
+      }, 1200);
+    }
   });
 
   let deferredPrompt = null;
@@ -95,6 +106,14 @@
     });
   }
 
+  function showInstallHint(message) {
+    if (typeof window.showSuccess === 'function') {
+      window.showSuccess(message);
+      return;
+    }
+    alert(message);
+  }
+
   async function handleInstallClick(event) {
     event?.preventDefault?.();
 
@@ -118,6 +137,15 @@
     }
 
     if ('serviceWorker' in navigator) {
+      if (!navigator.serviceWorker.controller) {
+        try {
+          await navigator.serviceWorker.ready;
+          sessionStorage.setItem(INSTALL_PREPARE_FLAG, '1');
+          window.location.reload();
+          return;
+        } catch {}
+      }
+
       try {
         await navigator.serviceWorker.ready;
       } catch {}

@@ -15,8 +15,30 @@
     return Array.from(document.querySelectorAll('[data-install-app]'));
   }
 
-  function setInstallButtonsVisible(visible) {
+  function dedupeInstallButtons() {
+    const grouped = new Map();
     getInstallButtons().forEach((button) => {
+      const scope = button.closest('#menuPanel, #topMenu, [id*="menu" i]') || document.body;
+      const key = scope.id || '__global__';
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(button);
+    });
+
+    grouped.forEach((buttons) => {
+      if (buttons.length <= 1) return;
+      const preferred = buttons.find((b) => b.getAttribute('data-install-menu-item') !== 'true') || buttons[0];
+      buttons.forEach((button) => {
+        if (button === preferred) return;
+        button.classList.add('hidden');
+        button.setAttribute('aria-hidden', 'true');
+      });
+    });
+  }
+
+  function setInstallButtonsVisible(visible) {
+    dedupeInstallButtons();
+    getInstallButtons().forEach((button) => {
+      if (button.getAttribute('aria-hidden') === 'true') return;
       if (visible) button.classList.remove('hidden');
       else button.classList.add('hidden');
     });
@@ -36,7 +58,9 @@
   }
 
   function bindInstallButtons() {
+    dedupeInstallButtons();
     getInstallButtons().forEach((button) => {
+      if (button.getAttribute('aria-hidden') === 'true') return;
       if (button.dataset.installBound === 'true') return;
       button.dataset.installBound = 'true';
       button.addEventListener('click', handleInstallClick);
@@ -65,6 +89,7 @@
   window.promptInstallApp = handleInstallClick;
 
   window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
     deferredPrompt = event;
     window.deferredInstallPrompt = deferredPrompt;
 

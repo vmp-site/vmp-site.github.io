@@ -1,4 +1,4 @@
-const CACHE_NAME = 'work-manager-v21';
+const CACHE_NAME = 'work-manager-v22';
 const APP_SHELL = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const APP_SHELL = [
   './profile.html',
   './style.css',
   './config.js',
+  './pwa-init.js',
   './app.js',
   './api.js',
   './calculations.js',

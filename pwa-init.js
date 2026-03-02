@@ -14,7 +14,7 @@
       tag.rel = 'manifest';
       return tag;
     });
-    manifestLink.href = 'manifest.webmanifest';
+    manifestLink.href = './manifest.webmanifest';
 
     const themeMeta = ensureTag('meta[name="theme-color"]', () => {
       const tag = document.createElement('meta');
@@ -89,13 +89,28 @@
       return;
     }
 
-    if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
+    const triggerPromptIfAvailable = async () => {
+      if (!deferredPrompt || typeof deferredPrompt.prompt !== 'function') return false;
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
       deferredPrompt = null;
       window.deferredInstallPrompt = null;
       setInstallButtonsVisible(false);
+      return true;
+    };
+
+    if (await triggerPromptIfAvailable()) {
       return;
+    }
+
+    if ('serviceWorker' in navigator) {
+      try {
+        await navigator.serviceWorker.ready;
+      } catch {}
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      if (await triggerPromptIfAvailable()) {
+        return;
+      }
     }
 
     const isSecure = window.isSecureContext;
@@ -103,7 +118,7 @@
     const localhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const secureOk = isSecure || onHttps || localhost;
     const message = secureOk
-      ? 'Install prompt is not ready yet. In Chrome, open browser menu and choose Install app / Add to Home screen.'
+      ? 'Install option is preparing. If prompt does not open, refresh once and use Chrome menu → Install app / Add to Home screen.'
       : 'Install is unavailable on insecure page. Open this app using HTTPS in Chrome, then use Install app / Add to Home screen.';
     alert(message);
   }

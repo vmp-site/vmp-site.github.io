@@ -33,6 +33,7 @@ body {
     line-height: 1.5;
     min-height: 100vh;
     padding-bottom: 60px;
+    touch-action: manipulation;
 }
 
 body {
@@ -192,6 +193,9 @@ select {
     background-repeat: no-repeat;
     background-position: right 1rem center;
     padding-right: 3rem;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
 }
 
 .btn {
@@ -203,6 +207,27 @@ select {
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s;
+    touch-action: manipulation;
+}
+
+a,
+button,
+input,
+textarea,
+label,
+[role="button"] {
+    touch-action: manipulation;
+}
+
+select {
+    touch-action: auto;
+}
+
+button,
+input,
+select,
+textarea {
+    pointer-events: auto;
 }
 
 .btn:active {
@@ -642,6 +667,39 @@ select {
     .chip-stack { flex-direction: column; }
     .action-row { flex-direction: column; }
     .action-row .btn { width: 100%; }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    input[type="email"],
+    select,
+    textarea,
+    button,
+    .btn {
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    select {
+        -webkit-appearance: menulist;
+        appearance: menulist;
+        background-image: none;
+        padding-right: 0.625rem;
+        line-height: 1.35;
+        z-index: 5;
+    }
+
+    select:focus {
+        position: relative;
+        z-index: 20;
+    }
+
+    select option,
+    select optgroup {
+        font-size: 16px;
+    }
 }
 
 

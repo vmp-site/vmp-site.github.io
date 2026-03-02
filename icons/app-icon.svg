@@ -1,16 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Work Manager icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Work Manager Pro icon">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#144bb8"/>
-      <stop offset="100%" stop-color="#0f3d95"/>
+      <stop offset="0%" stop-color="#0b3fae"/>
+      <stop offset="100%" stop-color="#1d63e5"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.98"/>
+      <stop offset="100%" stop-color="#e7efff" stop-opacity="0.98"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <rect x="98" y="124" width="316" height="264" rx="28" fill="#ffffff" opacity="0.96"/>
-  <rect x="128" y="164" width="182" height="24" rx="12" fill="#dbe7ff"/>
-  <rect x="128" y="206" width="256" height="18" rx="9" fill="#e8eefc"/>
-  <rect x="128" y="236" width="220" height="18" rx="9" fill="#e8eefc"/>
-  <rect x="128" y="266" width="170" height="18" rx="9" fill="#e8eefc"/>
-  <circle cx="356" cy="332" r="58" fill="#144bb8"/>
-  <path d="M330 332h52M356 306v52" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+
+  <rect width="512" height="512" rx="114" fill="url(#bg)"/>
+
+  <circle cx="256" cy="256" r="150" fill="none" stroke="url(#ring)" stroke-width="46"/>
+  <circle cx="256" cy="256" r="78" fill="#ffffff" opacity="0.96"/>
+
+  <rect x="238" y="104" width="36" height="72" rx="18" fill="#ffffff"/>
+  <rect x="238" y="336" width="36" height="72" rx="18" fill="#ffffff"/>
+  <rect x="104" y="238" width="72" height="36" rx="18" fill="#ffffff"/>
+  <rect x="336" y="238" width="72" height="36" rx="18" fill="#ffffff"/>
+
+  <circle cx="256" cy="256" r="18" fill="#0f4bc5"/>
 </svg>

@@ -1,7 +1,7 @@
 {
-  "name": "Work Manager",
-  "short_name": "WorkMgr",
-  "description": "Work, attendance, payments and reports for daily site operations",
+  "name": "Work Manager Pro",
+  "short_name": "WorkPro",
+  "description": "Professional work management for sites, attendance, payments and reports",
   "start_url": "./login-new.html",
   "scope": "./",
   "display": "standalone",

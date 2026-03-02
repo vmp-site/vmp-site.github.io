@@ -33,7 +33,6 @@ body {
     line-height: 1.5;
     min-height: 100vh;
     padding-bottom: 60px;
-    touch-action: manipulation;
 }
 
 body {
@@ -207,15 +206,12 @@ select {
     font-weight: 600;
     cursor: pointer;
     transition: opacity 0.2s;
-    touch-action: manipulation;
 }
 
 a,
 button,
-input,
-textarea,
-label,
-[role="button"] {
+[role="button"],
+.btn {
     touch-action: manipulation;
 }
 
@@ -683,10 +679,11 @@ textarea {
     }
 
     select {
-        -webkit-appearance: menulist;
-        appearance: menulist;
-        background-image: none;
+        -webkit-appearance: menulist !important;
+        appearance: menulist !important;
+        background-image: none !important;
         padding-right: 0.625rem;
+        pointer-events: auto;
         line-height: 1.35;
         z-index: 5;
     }
@@ -694,6 +691,13 @@ textarea {
     select:focus {
         position: relative;
         z-index: 20;
+    }
+
+    select,
+    option,
+    optgroup {
+        -webkit-user-select: text;
+        user-select: text;
     }
 
     select option,

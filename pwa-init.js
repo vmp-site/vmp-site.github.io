@@ -1,8 +1,45 @@
 (() => {
+  function ensurePwaMeta() {
+    const ensureTag = (selector, createTag) => {
+      let el = document.querySelector(selector);
+      if (!el) {
+        el = createTag();
+        document.head.appendChild(el);
+      }
+      return el;
+    };
+
+    const manifestLink = ensureTag('link[rel="manifest"]', () => {
+      const tag = document.createElement('link');
+      tag.rel = 'manifest';
+      return tag;
+    });
+    manifestLink.href = 'manifest.webmanifest';
+
+    const themeMeta = ensureTag('meta[name="theme-color"]', () => {
+      const tag = document.createElement('meta');
+      tag.name = 'theme-color';
+      return tag;
+    });
+    themeMeta.content = '#144bb8';
+
+    const appleIcon = ensureTag('link[rel="apple-touch-icon"]', () => {
+      const tag = document.createElement('link');
+      tag.rel = 'apple-touch-icon';
+      return tag;
+    });
+    appleIcon.href = 'icons/app-icon-192.png';
+  }
+
+  ensurePwaMeta();
+
   if (!('serviceWorker' in navigator)) return;
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      const normalizedPath = window.location.pathname.replace(/\/[^/]*$/, '/');
+      navigator.serviceWorker.register(`${normalizedPath}sw.js`).catch(() => {});
+    });
   });
 
   let deferredPrompt = null;
@@ -45,6 +82,13 @@
   }
 
   async function handleInstallClick(event) {
+    event?.preventDefault?.();
+
+    if (isStandaloneMode()) {
+      setInstallButtonsVisible(false);
+      return;
+    }
+
     if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
@@ -54,7 +98,14 @@
       return;
     }
 
-    alert('Install option not available yet. Open in Chrome and use browser menu → Install app / Add to Home screen.');
+    const isSecure = window.isSecureContext;
+    const onHttps = window.location.protocol === 'https:';
+    const localhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const secureOk = isSecure || onHttps || localhost;
+    const message = secureOk
+      ? 'Install prompt is not ready yet. In Chrome, open browser menu and choose Install app / Add to Home screen.'
+      : 'Install is unavailable on insecure page. Open this app using HTTPS in Chrome, then use Install app / Add to Home screen.';
+    alert(message);
   }
 
   function bindInstallButtons() {

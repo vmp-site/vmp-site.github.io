@@ -1,4 +1,4 @@
-const CACHE_NAME = 'work-manager-v20';
+const CACHE_NAME = 'work-manager-v21';
 const APP_SHELL = [
   './',
   './index.html',
@@ -33,6 +33,8 @@ const APP_SHELL = [
   './pdf-export.js',
   './manifest.webmanifest',
   './offline.html',
+  './icons/app-icon-192.png',
+  './icons/app-icon-512.png',
   './icons/app-icon.svg',
   './icons/app-icon-maskable.svg'
 ];

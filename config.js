@@ -1821,6 +1821,25 @@ function injectLanguageIntoMenus() {
     uniqueMenus.forEach((menu) => {
         const menuId = menu.id || 'menu';
 
+        const existingInstall = menu.querySelector('[data-install-menu-item="true"]');
+        if (!existingInstall) {
+            const installBtn = document.createElement('button');
+            installBtn.type = 'button';
+            installBtn.setAttribute('data-install-menu-item', 'true');
+            installBtn.setAttribute('data-install-app', 'true');
+            installBtn.className = 'w-full text-left px-4 py-2 text-sm text-primary hover:bg-slate-50';
+            installBtn.textContent = i18nText('Install App');
+            installBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                if (typeof window.promptInstallApp === 'function') {
+                    window.promptInstallApp(event);
+                } else {
+                    alert('Install option not available yet. Open in Chrome and use browser menu → Install app / Add to Home screen.');
+                }
+            });
+            menu.insertBefore(installBtn, menu.firstChild);
+        }
+
         const existingLanguage = menu.querySelector('[data-language-menu-item="true"]');
         if (!existingLanguage) {
             const container = document.createElement('div');

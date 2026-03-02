@@ -51,6 +51,17 @@
     setInstallButtonsVisible(true);
   }
 
+  const installObserver = new MutationObserver(() => {
+    bindInstallButtons();
+    if (!isStandaloneMode()) {
+      setInstallButtonsVisible(true);
+    }
+  });
+
+  if (document.body) {
+    installObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
   window.promptInstallApp = handleInstallClick;
 
   window.addEventListener('beforeinstallprompt', (event) => {
@@ -67,5 +78,6 @@
     deferredPrompt = null;
     window.deferredInstallPrompt = null;
     setInstallButtonsVisible(false);
+    installObserver.disconnect();
   });
 })();

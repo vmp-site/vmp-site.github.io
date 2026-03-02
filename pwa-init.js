@@ -23,8 +23,6 @@
   }
 
   async function handleInstallClick(event) {
-    if (event) event.preventDefault();
-
     if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
       deferredPrompt.prompt();
       await deferredPrompt.userChoice;
@@ -49,12 +47,13 @@
 
   if (isStandaloneMode()) {
     setInstallButtonsVisible(false);
+  } else {
+    setInstallButtonsVisible(true);
   }
 
   window.promptInstallApp = handleInstallClick;
 
   window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
     deferredPrompt = event;
     window.deferredInstallPrompt = deferredPrompt;
 

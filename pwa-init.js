@@ -43,6 +43,7 @@
   });
 
   let deferredPrompt = null;
+  let installEventSeen = false;
 
   function isStandaloneMode() {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -50,6 +51,21 @@
 
   function getInstallButtons() {
     return Array.from(document.querySelectorAll('[data-install-app]'));
+  }
+
+  function isIosSafari() {
+    const ua = window.navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua);
+    const isWebkit = /WebKit/.test(ua);
+    const isCriOS = /CriOS/.test(ua);
+    return isIOS && isWebkit && !isCriOS;
+  }
+
+  function shouldShowInstallButton() {
+    if (isStandaloneMode()) return false;
+    if (deferredPrompt || installEventSeen) return true;
+    if (isIosSafari()) return true;
+    return false;
   }
 
   function dedupeInstallButtons() {
@@ -118,7 +134,7 @@
     const localhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
     const secureOk = isSecure || onHttps || localhost;
     const message = secureOk
-      ? 'Install option is preparing. If prompt does not open, refresh once and use Chrome menu → Install app / Add to Home screen.'
+      ? 'Install option is not ready yet. In Chrome, use browser menu → Install app / Add to Home screen.'
       : 'Install is unavailable on insecure page. Open this app using HTTPS in Chrome, then use Install app / Add to Home screen.';
     alert(message);
   }
@@ -134,18 +150,11 @@
   }
 
   bindInstallButtons();
-
-  if (isStandaloneMode()) {
-    setInstallButtonsVisible(false);
-  } else {
-    setInstallButtonsVisible(true);
-  }
+  setInstallButtonsVisible(shouldShowInstallButton());
 
   const installObserver = new MutationObserver(() => {
     bindInstallButtons();
-    if (!isStandaloneMode()) {
-      setInstallButtonsVisible(true);
-    }
+    setInstallButtonsVisible(shouldShowInstallButton());
   });
 
   if (document.body) {
@@ -155,14 +164,12 @@
   window.promptInstallApp = handleInstallClick;
 
   window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
+    installEventSeen = true;
     deferredPrompt = event;
     window.deferredInstallPrompt = deferredPrompt;
 
     bindInstallButtons();
-    if (!isStandaloneMode()) {
-      setInstallButtonsVisible(true);
-    }
+    setInstallButtonsVisible(shouldShowInstallButton());
   });
 
   window.addEventListener('appinstalled', () => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'work-manager-v22';
+const CACHE_NAME = 'work-manager-v23';
 const APP_SHELL = [
   './',
   './index.html',

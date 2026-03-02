@@ -63,9 +63,7 @@
 
   function shouldShowInstallButton() {
     if (isStandaloneMode()) return false;
-    if (deferredPrompt || installEventSeen) return true;
-    if (isIosSafari()) return true;
-    return false;
+    return true;
   }
 
   function dedupeInstallButtons() {
@@ -164,6 +162,7 @@
   window.promptInstallApp = handleInstallClick;
 
   window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
     installEventSeen = true;
     deferredPrompt = event;
     window.deferredInstallPrompt = deferredPrompt;

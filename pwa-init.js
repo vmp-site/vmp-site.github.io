@@ -7,7 +7,6 @@
 
   let deferredPrompt = null;
   window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
     deferredPrompt = event;
     window.deferredInstallPrompt = deferredPrompt;
 
@@ -15,7 +14,7 @@
     installButtons.forEach((button) => {
       button.classList.remove('hidden');
       button.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
+        if (!deferredPrompt || typeof deferredPrompt.prompt !== 'function') return;
         deferredPrompt.prompt();
         await deferredPrompt.userChoice;
         deferredPrompt = null;
